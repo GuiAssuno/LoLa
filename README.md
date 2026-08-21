@@ -1,7 +1,5 @@
 # LoLa
 
-**Central de Controle Embarcada de Alta Performance para monitoramento e operação de maquinário crítico.**
-
 ---
 
 ## Objetivo do Projeto
