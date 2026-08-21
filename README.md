@@ -1,4 +1,4 @@
-# Kiosk System - Hub IoT Embarcado
+# LoLa
 
 **Central de Controle Embarcada de Alta Performance para monitoramento e operação de maquinário crítico.**
 
