@@ -1,0 +1,281 @@
+/* =============================================================
+   resources/style.qss
+   Tema "Retro Neon" — kiosk automotivo / dashboard Raspberry Pi 5
+
+   Observacao de performance (RPi5):
+   - Evitar gradientes muito complexos em widgets que sao redesenhados
+     com frequencia (ex.: video). Os paineis estaticos podem ter gradiente
+     sem problema, pois so sao repintados quando o layout muda.
+   - O "glow" de profundidade e feito via QGraphicsDropShadowEffect no
+     Python (widgets/panel.py), nao aqui, pois QSS nao suporta box-shadow.
+   ============================================================= */
+
+* {
+    outline: none;
+    selection-background-color: #ff00c8;
+    selection-color: #05010f;
+}
+
+QWidget {
+    background-color: transparent;
+    color: #e6faff;
+    font-family: "Share Tech Mono", "Consolas", "DejaVu Sans Mono", monospace;
+}
+
+QMainWindow, #MainScreen, #BaseScreen, #MenuScreen, #CameraScreen,
+#NavigationScreen, #SettingsScreen, #SystemScreen {
+    background-color: qlineargradient(
+        x1:0, y1:0, x2:1, y2:1,
+        stop:0 #05010f,
+        stop:0.5 #0a0420,
+        stop:1 #05010f
+    );
+}
+
+/* ---------------------------------------------------------------
+   Paineis com efeito de profundidade (glow aplicado via Python)
+   --------------------------------------------------------------- */
+QFrame#NeonPanel, QFrame#VideoPanel, QFrame#MapPanel,
+QFrame#AppBox, QFrame#SensorCard, QFrame#CarSensorsPanel,
+QFrame#CompactStat {
+    background-color: qlineargradient(
+        x1:0, y1:0, x2:0, y2:1,
+        stop:0 #150a30,
+        stop:1 #0a0420
+    );
+    border: 1px solid rgba(0, 255, 240, 60);
+    border-radius: 14px;
+}
+
+QFrame#AppBox:hover {
+    border: 1px solid rgba(0, 255, 240, 160);
+    background-color: qlineargradient(
+        x1:0, y1:0, x2:0, y2:1,
+        stop:0 #1c0e42,
+        stop:1 #0d0526
+    );
+}
+
+QLabel#AppBoxTitle {
+    color: #e6faff;
+    letter-spacing: 1px;
+}
+
+QLabel#AppBoxSubtitle, QLabel#SensorCardTitle, QLabel#InfoCardCaption,
+QLabel#SettingsFieldLabel {
+    color: #7a90b3;
+    letter-spacing: 1px;
+}
+
+QLabel#PanelTitle {
+    color: #00fff0;
+    font-weight: 600;
+    letter-spacing: 2px;
+    padding: 2px 4px;
+}
+
+QLabel#MapStatusLabel {
+    color: #00ff85;
+    font-size: 11px;
+    padding: 4px;
+    background-color: rgba(0, 255, 133, 15);
+    border-radius: 6px;
+}
+
+QLabel#MainLogo {
+    color: #ff00c8;
+    letter-spacing: 3px;
+}
+
+QLabel#ScreenTitle {
+    color: #e6faff;
+    letter-spacing: 3px;
+}
+
+/* ---------------------------------------------------------------
+   Barra superior de status
+   --------------------------------------------------------------- */
+QWidget#TopStatusBar {
+    background-color: rgba(13, 2, 33, 140);
+    border: 1px solid rgba(0, 255, 240, 50);
+    border-radius: 12px;
+}
+
+QLabel#ConnIcon {
+    color: #7a90b3;
+    padding: 2px 4px;
+}
+
+/* ---------------------------------------------------------------
+   Rodape rotativo
+   --------------------------------------------------------------- */
+QWidget#RotatingFooter {
+    background-color: qlineargradient(
+        x1:0, y1:0, x2:1, y2:0,
+        stop:0 rgba(0,255,240,18),
+        stop:0.5 rgba(255,0,200,12),
+        stop:1 rgba(0,255,240,18)
+    );
+    border-top: 1px solid rgba(0, 255, 240, 90);
+}
+
+QLabel#FooterDot {
+    color: #00ff85;
+    font-size: 14px;
+}
+
+QLabel#FooterLabel {
+    color: #e6faff;
+    letter-spacing: 1px;
+}
+
+QLabel#FooterPageIndicator {
+    color: #7a90b3;
+    font-size: 10px;
+}
+
+/* ---------------------------------------------------------------
+   Botoes
+   --------------------------------------------------------------- */
+QPushButton {
+    background-color: rgba(255,255,255,10);
+    border: 1px solid rgba(0,255,240,90);
+    border-radius: 8px;
+    padding: 8px 14px;
+    color: #e6faff;
+}
+QPushButton:hover {
+    background-color: rgba(0,255,240,30);
+}
+QPushButton:pressed {
+    background-color: rgba(0,255,240,60);
+}
+
+/* ---------------------------------------------------------------
+   Campos de formulario (tela de Configuracoes)
+   --------------------------------------------------------------- */
+QLineEdit, QComboBox, QSpinBox {
+    background-color: #0d0221;
+    border: 1px solid rgba(125, 18, 255, 140);
+    border-radius: 8px;
+    padding: 8px 10px;
+    color: #e6faff;
+    selection-background-color: #7d12ff;
+}
+QLineEdit:focus, QComboBox:focus, QSpinBox:focus {
+    border: 1px solid #ff00c8;
+}
+
+QComboBox::drop-down {
+    border: none;
+    width: 26px;
+}
+QComboBox QAbstractItemView {
+    background-color: #0d0221;
+    border: 1px solid #7d12ff;
+    selection-background-color: #ff00c8;
+    color: #e6faff;
+    outline: none;
+}
+
+QSlider::groove:horizontal {
+    height: 6px;
+    background: #0d0221;
+    border: 1px solid rgba(0,255,240,60);
+    border-radius: 3px;
+}
+QSlider::handle:horizontal {
+    background: #00fff0;
+    width: 18px;
+    height: 18px;
+    margin: -7px 0;
+    border-radius: 9px;
+}
+QSlider::sub-page:horizontal {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+        stop:0 #ff00c8, stop:1 #00fff0);
+    border-radius: 3px;
+}
+
+QSpinBox::up-button, QSpinBox::down-button {
+    background-color: rgba(0,255,240,20);
+    border: none;
+    width: 18px;
+}
+
+/* ---------------------------------------------------------------
+   Video panel: fundo mais escuro, "sem sinal" com aparencia de tela
+   --------------------------------------------------------------- */
+QLabel#VideoImageLabel {
+    background-color: #030110;
+    border-radius: 10px;
+}
+
+/* ---------------------------------------------------------------
+   Scrollbars discretas (kiosk normalmente nao rola, mas por garantia)
+   --------------------------------------------------------------- */
+QScrollBar:vertical {
+    background: transparent;
+    width: 8px;
+}
+QScrollBar::handle:vertical {
+    background: rgba(0,255,240,120);
+    border-radius: 4px;
+    min-height: 24px;
+}
+QScrollBar::add-line, QScrollBar::sub-line {
+    height: 0px;
+}
+
+/* ---------------------------------------------------------------
+   Media Player Bar (rodape da tela principal)
+   --------------------------------------------------------------- */
+QWidget#MediaPlayerBar {
+    background-color: qlineargradient(
+        x1:0, y1:0, x2:1, y2:0,
+        stop:0 rgba(0,255,240,14),
+        stop:0.5 rgba(255,0,200,10),
+        stop:1 rgba(125,18,255,14)
+    );
+    border-top: 1px solid rgba(0, 255, 240, 90);
+}
+
+QLabel#AlbumArt {
+    background-color: qlineargradient(x1:0,y1:0,x2:1,y2:1,
+        stop:0 #7d12ff, stop:1 #ff00c8);
+    border-radius: 10px;
+    color: #05010f;
+}
+
+QLabel#TrackTitle {
+    color: #e6faff;
+    letter-spacing: 1px;
+}
+
+QLabel#TrackArtist {
+    color: #7a90b3;
+}
+
+QLabel#NextCaption {
+    color: #00fff0;
+    letter-spacing: 2px;
+}
+
+QLabel#TimeLabel {
+    color: #7a90b3;
+    font-size: 10px;
+}
+
+QPushButton#TransportButton {
+    background-color: rgba(255,255,255,12);
+    border: 1px solid rgba(0,255,240,80);
+    border-radius: 18px;
+    color: #e6faff;
+    padding: 0px;
+}
+QPushButton#TransportButton:hover {
+    background-color: rgba(0,255,240,35);
+}
+QPushButton#TransportButton:pressed {
+    background-color: rgba(0,255,240,60);
+}
