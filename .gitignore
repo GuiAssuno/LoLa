@@ -1,0 +1,11 @@
+# Ignorar a pasta assets
+LoLa/assets/mapa_brasil.mbtiles
+
+# Ignorar pastas __pycache__ específicas
+__pycache__/
+LoLa/view/widgets/__pycache__/
+LoLa/view/screen/__pycache__/
+LoLa/view/resources/__pycache__/
+LoLa/view/core/__pycache__/
+LoLa/source/__pycache__/
+LoLa/controller/__pycache__/
