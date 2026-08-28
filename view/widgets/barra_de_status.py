@@ -44,7 +44,7 @@ class _StatusPill(QLabel):
         """)
 
 
-class TopStatusBar(QWidget):
+class BarraStatus(QWidget):
 
     menu_requested = Signal()
 

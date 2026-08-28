@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
-"""
-widgets/media_bar.py
 
+"""
 MediaPlayerBar: rodape de ponta a ponta estilo "media player" (album art,
 titulo/artista, controles, waveform animada, barra de progresso e a
 proxima faixa) — inspirado em paineis automotivos modernos.
@@ -18,7 +16,6 @@ logica aos sinais/metodos publicos:
     bar.set_progress(current_seconds, total_seconds)
     bar.set_playing(True/False)   # troca o icone play/pause
 """
-
 import random
 
 from PySide6.QtCore import Qt, QTimer, Signal
@@ -32,7 +29,6 @@ from view.core.config import Palette, Fonts
 def _format_time(seconds: int) -> str:
     seconds = max(0, int(seconds))
     return f"{seconds // 60}:{seconds % 60:02d}"
-
 
 class _WaveformVisualizer(QWidget):
     def __init__(self, bars=64, parent=None):

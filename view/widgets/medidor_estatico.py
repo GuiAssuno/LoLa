@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-widgets/stat_chip.py
-
 CompactStat: mini painel circular/quadrado com icone + valor + legenda,
 usado para leituras que nao precisam de um arco/ponteiro (ex.: Tempo de
 Viagem, com um relogio). Combina bem ao lado dos GaugeWidget na fileira

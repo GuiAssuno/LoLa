@@ -8,7 +8,6 @@ from view.widgets.base_do_painel import NeonPanel
 
 class IconButton(QPushButton):
     """Botao MENU"""
-
     def __init__(self, text="MENU", icon="☰", parent=None, color=None):
         super().__init__(parent)
         self.setObjectName("IconButton")
@@ -37,14 +36,13 @@ class IconButton(QPushButton):
             }}
         """
 
-class AppBox(NeonPanel):
+class CaixaApp(NeonPanel):
     """Caixa de aplicativos"""
-
     clicked = Signal()
 
-    def __init__(self, title="APP", icon="◆", subtitle="", color=None, parent=None):
-        color = color or Palette.NEON_CYAN
-        super().__init__(parent, glow_color=color, glow_strength=18)
+    def __init__(self, titulo="APP", icone="◆", subtitulo="", cor=None, parent=None):
+        cor = cor or Palette.NEON_CYAN
+        super().__init__(parent, glow_color=cor, glow_strength=18)
         self.setObjectName("AppBox")
         self.setCursor(Qt.PointingHandCursor)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -54,26 +52,26 @@ class AppBox(NeonPanel):
         layout.setAlignment(Qt.AlignCenter)
         layout.setSpacing(10)
 
-        icon_label = QLabel(icon)
-        icon_label.setAlignment(Qt.AlignCenter)
-        icon_label.setFont(QFont(Fonts.DISPLAY[0], 42))
-        icon_label.setStyleSheet(f"color: {color.name()};")
-        layout.addWidget(icon_label)
+        icone_label = QLabel(icone)
+        icone_label.setAlignment(Qt.AlignCenter)
+        icone_label.setFont(QFont(Fonts.DISPLAY[0], 42))
+        icone_label.setStyleSheet(f"color: {cor.name()};")
+        layout.addWidget(icone_label)
 
-        title_label = QLabel(title)
-        title_label.setAlignment(Qt.AlignCenter)
-        title_label.setObjectName("AppBoxTitle")
-        title_label.setFont(QFont(Fonts.DISPLAY[0], 13, QFont.Bold))
-        layout.addWidget(title_label)
+        titulo_label = QLabel(titulo)
+        titulo_label.setAlignment(Qt.AlignCenter)
+        titulo_label.setObjectName("AppBoxTitle")
+        titulo_label.setFont(QFont(Fonts.DISPLAY[0], 13, QFont.Bold))
+        layout.addWidget(titulo_label)
 
-        if subtitle:
-            sub_label = QLabel(subtitle)
-            sub_label.setAlignment(Qt.AlignCenter)
-            sub_label.setObjectName("AppBoxSubtitle")
-            sub_label.setFont(QFont(Fonts.MONO[0], 9))
-            layout.addWidget(sub_label)
+        if subtitulo:
+            subtitulo_label = QLabel(subtitulo)
+            subtitulo_label.setAlignment(Qt.AlignCenter)
+            subtitulo_label.setObjectName("AppBoxSubtitle")
+            subtitulo_label.setFont(QFont(Fonts.MONO[0], 9))
+            layout.addWidget(subtitulo_label)
 
-        self._color = color
+        self._cor = cor
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
