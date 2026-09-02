@@ -1,180 +1,205 @@
-# -*- coding: utf-8 -*-
-"""
-widgets/car_sensors.py
-
-CarSensorsPanel: visao superior (top-down) do veiculo com:
-  - ondas de radar de proximidade nos 4 cantos (dianteira/traseira, esq/dir)
-  - chips TPMS (pressao dos 4 pneus)
-
-Tudo desenhado com QPainter (leve para o RPi5, sem imagens externas).
-So INTERFACE - API publica pronta para os dados reais dos sensores:
-
-    car_panel.set_proximity("fl", 0.8)   # 0 = livre (verde) .. 1 = perigo (vermelho)
-    car_panel.set_proximity("fr", 0.3)
-    car_panel.set_proximity("rl", 0.1)
-    car_panel.set_proximity("rr", 0.5)
-    car_panel.set_tire_pressure("fl", 34)   # PSI
-"""
-
 import math
-
+# bibliotecas Qt
 from PySide6.QtCore import Qt, QRectF, QPointF
 from PySide6.QtGui import QPainter, QPen, QColor, QFont, QPainterPath
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QSizePolicy
 
+# bibliotecas internas do projeto
 from view.core.config import Palette, Fonts
 from view.widgets.base_do_painel import NeonPanel
+ 
+CORNERS = ("fe", # frente-esquerda
+           "fd", # frente-direita
+           "te", # traseira-esquerda
+           "td"  # traseira-direita
+)
 
-# ordem: front-left, front-right, rear-left, rear-right
-CORNERS = ("fl", "fr", "rl", "rr")
-
-
-def _level_color(level: float) -> QColor:
-    """Interpola verde -> amarelo -> vermelho conforme o nivel (0..1)."""
-    level = max(0.0, min(1.0, level))
-    if level < 0.5:
-        # verde -> amarelo
-        t = level / 0.5
-        r = int(Palette.NEON_GREEN.red() + t * (Palette.NEON_YELLOW.red() - Palette.NEON_GREEN.red()))
+#========================================== Nivel de Cor ========================================================
+def _NivelCor(nivel: float) -> QColor:
+    """Intercala verde(0.0) → amarelo(0.5) → vermelho(1.0) em uma escala de 0.0 a 1.0"""
+    nivel = max(0.0, min(1.0, nivel))
+#_________________________________________verde -> amarelo_______________________________________________________
+    if nivel < 0.5: 
+        t = nivel / 0.5
+        r = int(Palette.NEON_GREEN.red()   + t * (Palette.NEON_YELLOW.red()   - Palette.NEON_GREEN.red()))
         g = int(Palette.NEON_GREEN.green() + t * (Palette.NEON_YELLOW.green() - Palette.NEON_GREEN.green()))
-        b = int(Palette.NEON_GREEN.blue() + t * (Palette.NEON_YELLOW.blue() - Palette.NEON_GREEN.blue()))
-    else:
-        # amarelo -> vermelho
-        t = (level - 0.5) / 0.5
-        r = int(Palette.NEON_YELLOW.red() + t * (Palette.NEON_RED.red() - Palette.NEON_YELLOW.red()))
+        b = int(Palette.NEON_GREEN.blue()  + t * (Palette.NEON_YELLOW.blue()  - Palette.NEON_GREEN.blue()))
+#_________________________________________amarelo -> vermelho____________________________________________________
+    else: 
+        t = (nivel - 0.5) / 0.5
+        r = int(Palette.NEON_YELLOW.red()   + t * (Palette.NEON_RED.red()   - Palette.NEON_YELLOW.red()))
         g = int(Palette.NEON_YELLOW.green() + t * (Palette.NEON_RED.green() - Palette.NEON_YELLOW.green()))
-        b = int(Palette.NEON_YELLOW.blue() + t * (Palette.NEON_RED.blue() - Palette.NEON_YELLOW.blue()))
+        b = int(Palette.NEON_YELLOW.blue()  + t * (Palette.NEON_RED.blue()  - Palette.NEON_YELLOW.blue()))
     return QColor(r, g, b)
 
-
-class _CarCanvas(QWidget):
-
+#================================================================================================================
+#========================================== Classe DesenhoCarro =================================================
+#================================================================================================================
+class _DesenhoCarro(QWidget):
+    """Desenho do carro com radares de proximidade e os chips de sensores de peneus (TPMS). 
+    So INTERFACE, sem logica de sensores - use os metodos publicos set_aproximidade() e set_pressao_pneu()"""
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.setMinimumSize(180, 260)
-        # valores de exemplo (placeholder visual ate os dados reais chegarem)
-        self._proximity = {"fl": 0.2, "fr": 0.5, "rl": 0.75, "rr": 0.3}
-        self._tpms = {"fl": None, "fr": None, "rl": None, "rr": None}
 
-    def set_proximity(self, corner, level):
-        if corner in self._proximity:
-            self._proximity[corner] = max(0.0, min(1.0, level))
+        self.sensor_de_aproximidade = {"fe": 0.2, "fd": 0.5, "te": 0.75, "td": 0.3} # DADO MOCK
+        self.sensor_do_pneu = {"fe": None, "fd": None, "te": None, "td": None} # DADO MOCK
+#________________________________________________________________________________________________set_aproximidade
+    def set_aproximidade(self, sensor, level):
+        """Atualiza o nivel de aproximidade do sensor do carro"""
+        if sensor in self.sensor_de_aproximidade:
+            self.sensor_de_aproximidade[sensor] = max(0.0, min(1.0, level))
             self.update()
-
-    def set_tire_pressure(self, wheel, psi):
-        if wheel in self._tpms:
-            self._tpms[wheel] = psi
+#________________________________________________________________________________________________set_pressao_pneu
+    def set_pressao_pneu(self, pneu, psi):
+        """Atualiza a pressao do pneu"""
+        if pneu in self.sensor_do_pneu:
+            self.sensor_do_pneu[pneu] = psi
             self.update()
+#________________________________________________________________________________________________set_pressao_pneu
 
     def paintEvent(self, event):
-        p = QPainter(self)
-        p.setRenderHint(QPainter.Antialiasing)
+        """Desenha o carro, os radares de aproximação e os chips de pressao dos pneus"""
 
-        w, h = self.width(), self.height()
-        cx, cy = w / 2, h / 2
+        pintor = QPainter(self)
+        pintor.setRenderHint(QPainter.Antialiasing)
 
-        car_w = min(w * 0.34, 110)
-        car_h = min(h * 0.62, 320)
+        largura, altura = self.width(), self.height()
+        centro_x, centro_y = largura / 2, altura / 2
 
-        self._draw_radars(p, cx, cy, car_w, car_h)
-        self._draw_car_body(p, cx, cy, car_w, car_h)
-        self._draw_tpms(p, cx, cy, car_w, car_h)
+        car_largura = min(largura * 0.34, 110)
+        car_altura  = min(altura  * 0.62, 320)
+        
+        self._DesenhaSensores(pintor, centro_x, centro_y, car_largura, car_altura)      # Desenho as ondas de aproximidade
+        self._DesenhaCorpoCarro(pintor, centro_x, centro_y, car_largura, car_altura)    # Desenho o corpo do carro visto de cima
+        self._DesenhaSensorPressao(pintor, centro_x, centro_y, car_largura, car_altura) # Desenho os sensores de pressao dos pneus
 
-    # -- carro (silhueta simples, vista de cima) -----------------------
-    def _draw_car_body(self, p: QPainter, cx, cy, car_w, car_h):
-        body_rect = QRectF(cx - car_w / 2, cy - car_h / 2, car_w, car_h)
+    def _DesenhaCorpoCarro(self, p: QPainter, centro_x, centro_y, car_largura, car_altura):
+        """Desenha o corpo do carro visto de cima
+        com para-brisa e rodas no formato de retangulo arredondado"""
+
+        corpo_retangulo = QRectF(centro_x - car_largura / 2, centro_y - car_altura / 2, car_largura, car_altura)
 
         pen = QPen(Palette.NEON_CYAN)
         pen.setWidth(2)
         p.setPen(pen)
         p.setBrush(QColor(10, 20, 35, 140))
-        p.drawRoundedRect(body_rect, car_w * 0.28, car_w * 0.28)
+        p.drawRoundedRect(corpo_retangulo, car_largura * 0.28, car_largura * 0.28)
 
-        # para-brisa (indicacao da frente)
-        wind_rect = QRectF(cx - car_w * 0.32, cy - car_h * 0.36, car_w * 0.64, car_h * 0.16)
+        # para-brisa
+        para_brisa = QRectF(centro_x - car_largura * 0.32, centro_y - car_altura * 0.36, car_largura * 0.64, car_altura * 0.16)
         p.setPen(QPen(QColor(0, 255, 240, 120), 1))
         p.setBrush(QColor(0, 255, 240, 25))
-        p.drawRoundedRect(wind_rect, 6, 6)
+        p.drawRoundedRect(para_brisa, 6, 6)
 
-        # rodas (4 retangulos)
-        wheel_w, wheel_h = car_w * 0.16, car_h * 0.14
+        # rodas
+        pneu_largura, pneu_altura = car_largura * 0.16, car_altura * 0.14
         offsets = {
-            "fl": (-car_w / 2 - wheel_w * 0.3, -car_h * 0.30),
-            "fr": (car_w / 2 - wheel_w * 0.7, -car_h * 0.30),
-            "rl": (-car_w / 2 - wheel_w * 0.3, car_h * 0.16),
-            "rr": (car_w / 2 - wheel_w * 0.7, car_h * 0.16),
+            "fe": (-car_largura / 2 - pneu_largura * 0.3, -car_altura * 0.30),
+            "fd": ( car_largura / 2 - pneu_largura * 0.7, -car_altura * 0.30),
+            "te": (-car_largura / 2 - pneu_largura * 0.3,  car_altura * 0.16),
+            "td": ( car_largura / 2 - pneu_largura * 0.7,  car_altura * 0.16),
         }
+
         p.setPen(QPen(Palette.TEXT_DIM, 1))
         p.setBrush(QColor(20, 20, 28))
-        for dx, dy in offsets.values():
-            p.drawRoundedRect(QRectF(cx + dx, cy + dy, wheel_w, wheel_h), 3, 3)
 
-    # -- radares de proximidade (arcos tipo 'sinal wifi') ----------------
-    def _draw_radars(self, p: QPainter, cx, cy, car_w, car_h):
-        corner_pos = {
-            "fl": (cx - car_w / 2, cy - car_h / 2, 225),   # (x, y, angulo_base_graus)
-            "fr": (cx + car_w / 2, cy - car_h / 2, 315),
-            "rl": (cx - car_w / 2, cy + car_h / 2, 135),
-            "rr": (cx + car_w / 2, cy + car_h / 2, 45),
+        for delta_x, delta_y in offsets.values():
+            p.drawRoundedRect(
+                QRectF(centro_x + delta_x, # Left
+                       centro_y + delta_y, # Top
+                       pneu_largura,       # Weidth
+                       pneu_altura),       # Height       
+
+                3, # Radius X
+                3 # Radius Y
+            )
+#________________________________________________________________________________________________DesenhaSensores
+    def _DesenhaSensores(self, p: QPainter, centro_x, centro_y, car_largura, car_altura):
+        """Desenha os radares de aproximação 
+            direcao_sensor aponta a direção: 
+            0°    →  Direita 
+            90°   ↑  Cima
+            180°  ←  Esquerda 
+            270°  ↓  Baixo"""
+
+        posicao_sensores = { # Lado: (x, y, angulo_base_graus)
+            "fe": (centro_x - car_largura / 2, centro_y - car_altura / 2, 135), 
+            "fd": (centro_x + car_largura / 2, centro_y - car_altura / 2, 45),
+            "te": (centro_x - car_largura / 2, centro_y + car_altura / 2, 225),
+            "td": (centro_x + car_largura / 2, centro_y + car_altura / 2, 315),
         }
-        for corner, (x, y, base_angle) in corner_pos.items():
-            level = self._proximity.get(corner, 0.0)
-            color = _level_color(level)
-            n_arcs = 3
-            max_radius = 34
-            for i in range(1, n_arcs + 1):
-                radius = max_radius * i / n_arcs
-                alpha = int(60 + 130 * (i / n_arcs)) if level > 0.02 else 40
-                pen = QPen(QColor(color.red(), color.green(), color.blue(), alpha))
-                pen.setWidth(4)
-                pen.setCapStyle(Qt.RoundCap)
+
+        # Desenha cada sensor de aproximidade
+        for sensor, (x, y, direcao_sensor) in posicao_sensores.items(): 
+            nivel = self.sensor_de_aproximidade.get(sensor, 0.0) 
+            cor = _NivelCor(nivel)
+            numero_de_arcos = 3
+            maximo_radianos = 34
+
+            # para cada sensor, desenha 3 arcos
+            for i in range(1, numero_de_arcos + 1): 
+                radianos = maximo_radianos * i / numero_de_arcos
+                transparencia = int(60 + 130 * (i / numero_de_arcos)) if nivel > 0.02 else 40 # transparencia do arco (quanto mais proximo, mais opaco)
+                pen = QPen(QColor(cor.red(),   # Red
+                                  cor.green(), # Green
+                                  cor.blue(),  # Blue
+                                  transparencia))      # Tranparencia
+            
+                pen.setWidth(4)                          # largura da linha do arco
+                pen.setCapStyle(Qt.PenCapStyle.RoundCap) # Ponta da linha do arco SquareCap=Quadrado | RoundCap=Arredondas
                 p.setPen(pen)
                 p.setBrush(Qt.NoBrush)
-                rect = QRectF(x - radius, y - radius, radius * 2, radius * 2)
+                retangulo = QRectF(x - radianos, y - radianos, radianos * 2, radianos * 2)
                 # arco de 70 graus centrado no angulo-base (aponta pra fora do carro)
-                p.drawArc(rect, int((base_angle - 35) * 16), int(70 * 16))
+                p.drawArc(retangulo, int((direcao_sensor - 35) * 16), int(70 * 16))
 
-    # -- chips TPMS (pressao dos pneus) -----------------------------------
-    def _draw_tpms(self, p: QPainter, cx, cy, car_w, car_h):
-        positions = {
-            "fl": (cx - car_w / 2 - 46, cy - car_h * 0.30, Qt.AlignRight),
-            "fr": (cx + car_w / 2 + 4, cy - car_h * 0.30, Qt.AlignLeft),
-            "rl": (cx - car_w / 2 - 46, cy + car_h * 0.16, Qt.AlignRight),
-            "rr": (cx + car_w / 2 + 4, cy + car_h * 0.16, Qt.AlignLeft),
+#________________________________________________________________________________________________DesenhaSensorPressao
+    def _DesenhaSensorPressao(self, pintor: QPainter, centro_x, centro_y, car_largura, car_altura):
+        """Desenha os chips de pressao dos pneus"""
+
+        positions = { # Lado: (x, y, alinhamento)
+            "fe": (centro_x - car_largura / 2 - 46, centro_y - car_altura * 0.30, Qt.AlignRight),
+            "fd": (centro_x + car_largura / 2 + 4,  centro_y - car_altura * 0.30, Qt.AlignLeft),
+            "te": (centro_x - car_largura / 2 - 46, centro_y + car_altura * 0.16, Qt.AlignRight),
+            "td": (centro_x + car_largura / 2 + 4,  centro_y + car_altura * 0.16, Qt.AlignLeft),
         }
-        p.setFont(QFont(Fonts.MONO[0], 8, QFont.DemiBold))
-        for wheel, (x, y, align) in positions.items():
-            psi = self._tpms.get(wheel)
+
+        pintor.setFont(QFont(Fonts.MONO[0], 8, QFont.DemiBold))
+
+        for pneu, (x, y, alinhamento) in positions.items():
+            psi = self.sensor_do_pneu.get(pneu)
             text = f"{psi} PSI" if psi is not None else "-- PSI"
-            rect = QRectF(x, y, 42, 26)
-            p.setPen(QPen(Palette.NEON_GREEN, 1))
-            p.setBrush(QColor(5, 1, 15, 200))
-            p.drawRoundedRect(rect, 5, 5)
-            p.setPen(Palette.TEXT_PRIMARY)
-            p.drawText(rect, Qt.AlignCenter, text)
+            retangulo = QRectF(x, y, 42, 26)
+            pintor.setPen(QPen(Palette.NEON_GREEN, 1))
+            pintor.setBrush(QColor(5, 1, 15, 200))
+            pintor.drawRoundedRect(retangulo, 5, 5)
+            pintor.setPen(Palette.TEXT_PRIMARY)
+            pintor.drawText(retangulo, alinhamento, text)
 
-
-class CarSensorsPanel(NeonPanel):
-
+#================================================================================================================
+#======================================== Classe PainelSensorCarro ==============================================
+#================================================================================================================
+class PainelSensorCarro(NeonPanel):
+    """Painel de sensores de proximidade e pressao dos pneus"""
     def __init__(self, parent=None):
         super().__init__(parent, glow_color=Palette.NEON_MAGENTA, glow_strength=20)
-        self.setObjectName("CarSensorsPanel")
+        self.setObjectName("PainelSensorCarro")
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(6, 6, 6, 6)
         layout.setSpacing(4)
 
-        title = QLabel("◈ SENSORES DE PROXIMIDADE")
-        title.setObjectName("PanelTitle")
-        layout.addWidget(title)
+        titulo = QLabel("◈ SENSORES DE APROXIMIDADE")
+        titulo.setObjectName("TituloPainel")
+        layout.addWidget(titulo)
 
-        self._canvas = _CarCanvas()
-        layout.addWidget(self._canvas, stretch=1)
+        self._desenho = _DesenhoCarro()
+        layout.addWidget(self._desenho, stretch=1)
 
-    # -- API publica -----------------------------------------------------
-    def set_proximity(self, corner: str, level: float):
-        self._canvas.set_proximity(corner, level)
+    def set_aproximidade(self, sensor: str, level: float):
+        self._desenho.set_aproximidade(sensor, level)
 
-    def set_tire_pressure(self, wheel: str, psi):
-        self._canvas.set_tire_pressure(wheel, psi)
+    def set_pressao_pneu(self, pneu: str, psi):
+        self._desenho.set_pressao_pneu(pneu, psi)

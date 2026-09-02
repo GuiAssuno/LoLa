@@ -20,7 +20,7 @@ SPAN_ANGLE = -270    # varre 270 graus no sentido horario
 #=================================================================================================================
 class Medidor(QWidget):
     def __init__(self, titulo="MEDIDOR", unidade="", valor_min=0, valor_max=100,
-                 color: QColor = None, parent=None):
+                 cor: QColor = None, parent=None):
         super().__init__(parent)
         self._titulo = titulo
         self._unidade = unidade
@@ -29,7 +29,7 @@ class Medidor(QWidget):
         self._valor = valor_min
         self._zona_de_perigo = None
         self._modo_de_perigo = "acima"
-        self._color = QColor(color or Palette.NEON_CYAN)
+        self._color = QColor(cor or Palette.NEON_CYAN)
 
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.setMinimumSize(140, 140)

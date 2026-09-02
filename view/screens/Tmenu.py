@@ -14,7 +14,7 @@ from PySide6.QtWidgets import QGridLayout
 
 from view.core.config import Palette
 from view.screens.base import BaseScreen
-from view.widgets.botao_navegacao import AppBox
+from view.widgets.botao_navegacao import CaixaApp
 
 
 class TelaMenu(BaseScreen):
@@ -33,20 +33,20 @@ class TelaMenu(BaseScreen):
         grid = QGridLayout()
         grid.setSpacing(20)
 
-        box_camera = AppBox(title="CAMERA", icon="📷", subtitle="Visualizar transmissao",
-                             color=Palette.NEON_CYAN)
+        box_camera = CaixaApp(titulo="CAMERA", icone="📷", subtitulo="Visualizar transmissao",
+                             cor=Palette.NEON_CYAN)
         box_camera.clicked.connect(self.open_camera.emit)
 
-        box_nav = AppBox(title="NAVEGACAO", icon="🧭", subtitle="Mapa e rota",
-                          color=Palette.NEON_GREEN)
+        box_nav = CaixaApp(titulo="NAVEGACAO", icone="🧭", subtitulo="Mapa e rota",
+                          cor=Palette.NEON_GREEN)
         box_nav.clicked.connect(self.open_navigation.emit)
 
-        box_settings = AppBox(title="CONFIGURACOES", icon="⚙", subtitle="Usuario, tema, audio",
-                               color=Palette.NEON_PURPLE)
+        box_settings = CaixaApp(titulo="CONFIGURACOES", icone="⚙", subtitulo="Usuario, tema, audio",
+                               cor=Palette.NEON_PURPLE)
         box_settings.clicked.connect(self.open_settings.emit)
 
-        box_system = AppBox(title="SISTEMA", icon="🖥", subtitle="Sensores / ESP32 / Arduino",
-                             color=Palette.NEON_MAGENTA)
+        box_system = CaixaApp(titulo="SISTEMA", icone="🖥", subtitulo="Sensores / ESP32 / Arduino",
+                             cor=Palette.NEON_MAGENTA)
         box_system.clicked.connect(self.open_system.emit)
 
         grid.addWidget(box_camera, 0, 0)

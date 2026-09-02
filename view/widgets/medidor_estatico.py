@@ -19,8 +19,8 @@ from view.widgets.base_do_painel import NeonPanel
 
 class CompactStat(NeonPanel):
 
-    def __init__(self, icon="◇", value="--", caption="STAT", color=None, parent=None):
-        color = color or Palette.NEON_CYAN
+    def __init__(self, icon="◇", value="--", caption="STAT", cor=None, parent=None):
+        color = cor or Palette.NEON_CYAN
         super().__init__(parent, glow_color=color, glow_strength=14)
         self.setObjectName("CompactStat")
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)

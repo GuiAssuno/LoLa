@@ -20,7 +20,7 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QSizePolicy
 
 from view.core.config import Palette, Fonts
 from view.widgets.base_do_painel import NeonPanel
-from view.widgets.rosa_dos_ventos import CompassRose
+from view.widgets.rosa_dos_ventos import RosaVentos
 
 
 class _RadarCanvas(QWidget):
@@ -30,7 +30,7 @@ class _RadarCanvas(QWidget):
         self._heading = 0.0
 
         # bussola flutuante no canto inferior direito (overlay, fora do layout)
-        self._compass = CompassRose(self, diameter=60)
+        self._compass = RosaVentos(self, diametro=60)
         self._compass.raise_()
 
     def set_heading(self, degrees: float):

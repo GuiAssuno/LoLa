@@ -21,12 +21,12 @@ from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QGridLayout
 
 from view.core.config import Palette
-from view.widgets.barra_de_status import TopStatusBar
-from view.widgets.medidor import GaugeWidget
-from view.widgets.stat_chip import CompactStat
+from view.widgets.barra_de_status import BarraStatus
+from view.widgets.medidor import Medidor
+from view.widgets.medidor_estatico import CompactStat
 from view.widgets.area_mapa import MapPanel
 from view.widgets.area_video import VideoPanel
-from view.widgets.sensores_proximacao import CarSensorsPanel
+from view.widgets.sensores_proximacao import PainelSensorCarro
 from view.widgets.barra_de_media import MediaPlayerBar
 
 
@@ -43,7 +43,7 @@ class TelaPrincipal(QWidget):
         root.setSpacing(10)
 
         # ---- barra superior ----
-        self.top_bar = TopStatusBar()
+        self.top_bar = BarraStatus()
         self.top_bar.menu_requested.connect(self.menu_requested.emit)
         root.addWidget(self.top_bar)
 
@@ -77,42 +77,42 @@ class TelaPrincipal(QWidget):
         return self.video_panel
 
     def _build_right_column(self):
-        self.car_panel = CarSensorsPanel()
+        self.car_panel = PainelSensorCarro()
         # valores de exemplo so para deixar a interface com boa aparencia
-        self.car_panel.set_tire_pressure("fl", 35)
-        self.car_panel.set_tire_pressure("fr", 35)
-        self.car_panel.set_tire_pressure("rl", 35)
-        self.car_panel.set_tire_pressure("rr", 35)
+        self.car_panel.set_pressao_pneu("fe", 35)
+        self.car_panel.set_pressao_pneu("fd", 35)
+        self.car_panel.set_pressao_pneu("te", 35)
+        self.car_panel.set_pressao_pneu("td", 35)
         return self.car_panel
 
     def _build_gauges_row(self):
         grid = QGridLayout()
         grid.setSpacing(8)
 
-        self.speed_gauge = GaugeWidget(title="VELOC.", unit="km/h", min_value=0,
-                                        max_value=220, color=Palette.NEON_CYAN)
-        self.speed_gauge.setDangerZone(160)
+        self.speed_gauge = Medidor(titulo="VELOC.", unidade="km/h", valor_min=0,
+                                        valor_max=220, cor=Palette.NEON_CYAN)
+        self.speed_gauge.set_ZonaPerigo(160)
 
-        self.rpm_gauge = GaugeWidget(title="RPM", unit="x1000", min_value=0,
-                                      max_value=8, color=Palette.NEON_GREEN)
-        self.rpm_gauge.setDangerZone(6)
+        self.rpm_gauge = Medidor(titulo="RPM", unidade="x1000", valor_min=0,
+                                      valor_max=8, cor=Palette.NEON_GREEN)
+        self.rpm_gauge.set_ZonaPerigo(6)
 
-        self.temp_gauge = GaugeWidget(title="TEMP.", unit="°C", min_value=0,
-                                       max_value=140, color=Palette.NEON_YELLOW)
-        self.temp_gauge.setDangerZone(110)
+        self.temp_gauge = Medidor(titulo="TEMP.", unidade="°C", valor_min=0,
+                                       valor_max=140, cor=Palette.NEON_YELLOW)
+        self.temp_gauge.set_ZonaPerigo(110)
 
         self.trip_chip = CompactStat(icon="🕐", value="00:00", caption="TEMPO",
-                                      color=Palette.NEON_CYAN)
+                                      cor=Palette.NEON_CYAN)
 
-        self.gforce_gauge = GaugeWidget(title="G-FORCE", unit="G", min_value=0,
-                                         max_value=2, color=Palette.NEON_PURPLE)
+        self.gforce_gauge = Medidor(titulo="G-FORCE", unidade="G", valor_min=0,
+                                         valor_max=2, cor=Palette.NEON_PURPLE)
 
-        self.energy_gauge = GaugeWidget(title="ENERGIA", unit="%", min_value=0,
-                                         max_value=100, color=Palette.NEON_GREEN)
-        self.energy_gauge.setDangerZone(15, mode="below")
+        self.energy_gauge = Medidor(titulo="ENERGIA", unidade="%", valor_min=0,
+                                         valor_max=100, cor=Palette.NEON_GREEN)
+        self.energy_gauge.set_ZonaPerigo(15, modo="abaixo")
 
-        self.incline_gauge = GaugeWidget(title="INCLIN.", unit="°", min_value=-45,
-                                          max_value=45, color=Palette.NEON_MAGENTA)
+        self.incline_gauge = Medidor(titulo="INCLIN.", unidade="°", valor_min=-45,
+                                          valor_max=45, cor=Palette.NEON_MAGENTA)
 
         widgets = [
             self.speed_gauge, self.rpm_gauge, self.temp_gauge, self.trip_chip,
