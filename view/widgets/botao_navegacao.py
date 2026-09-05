@@ -6,20 +6,28 @@ from view.core.config import Palette, Fonts
 from view.widgets.base_do_painel import NeonPanel
 
 
-class IconButton(QPushButton):
+#===========================================================================================================
+#==========================================  Icone Botão Menu  =============================================
+#===========================================================================================================
+class BotaoMenu(QPushButton):
     """Botao MENU"""
-    def __init__(self, text="MENU", icon="☰", parent=None, color=None):
+    def __init__(self, texto="MENU", icon="☰", parent=None, color=None):
         super().__init__(parent)
         self.setObjectName("IconButton")
-        self._color = color or Palette.NEON_MAGENTA
-        self.setText(f"{icon}  {text}")
-        self.setCursor(Qt.PointingHandCursor)
-        self.setFont(QFont(Fonts.DISPLAY[0], 11, QFont.DemiBold))
-        self.setMinimumHeight(44)
-        self.setStyleSheet(self._build_style())
 
+        # cor do botao (pode ser alterada depois com set_color()) 
+        self._color = color or Palette.NEON_MAGENTA # se a cor nao for passada, usa a cor padrao (magenta neon)
+
+        self.setText(f"{icon}") # o texto que aparece no botao
+        self.setCursor(Qt.PointingHandCursor) # cursor de "maozinha" ao passar por cima
+        self.setFont(QFont(Fonts.DISPLAY[0], 11, QFont.DemiBold)) # fonte do botao
+        self.setMinimumHeight(44) # tamanho minimo do botao
+        self.setStyleSheet(self._build_style()) # aplica o estilo do botao
+#___________________________________________________________________________________________estilo do botao
     def _build_style(self):
-        c = self._color.name()
+        c = self._color.name() # pega a cor do botao em formato hexadecimal
+
+        # retorna o estilo do botao em formato CSS, usando a cor definida
         return f"""
             QPushButton#IconButton {{
                 color: {c};
@@ -36,6 +44,9 @@ class IconButton(QPushButton):
             }}
         """
 
+#===========================================================================================================
+#==========================================  Caixa dos aplicativos  ========================================
+#===========================================================================================================
 class CaixaApp(NeonPanel):
     """Caixa de aplicativos"""
     clicked = Signal()

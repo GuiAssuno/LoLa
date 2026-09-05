@@ -15,8 +15,10 @@ from view.screens.Tmonitor_sensores import TelaMonitor
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 STYLE_PATH = os.path.join(BASE_DIR, "view", "resources", "style.qss")
 
-
-class KioskWindow(QMainWindow):
+#===========================================================================================================
+#========================================== Classe Janela Principal ========================================
+#===========================================================================================================
+class JanelaPrincipal(QMainWindow):
     def __init__(self):
         # Chamando a classe pai QMainWindow
         super().__init__() 
@@ -28,10 +30,7 @@ class KioskWindow(QMainWindow):
         # criando a pilha para gerenciar as telas
         self.stack = QStackedWidget()
         self.setCentralWidget(self.stack)
-
-#===========================================================================================================
-#==========================================  instancia as telas ============================================
-#===========================================================================================================
+#_____________________________________________________________________criando as telas e adicionando na pilha
         self.tela_home    = TelaPrincipal() # Tela principal
         self.tela_menu    = TelaMenu()      # Tela de menu
         self.tela_camera  = TelaCamera()    # Tela de camera
@@ -39,7 +38,9 @@ class KioskWindow(QMainWindow):
         self.tela_config  = TelaConfig()    # Tela de configurações
         self.tela_monitor = TelaMonitor()   # Tela de sistema
 
-        for screen in (self.tela_home, self.tela_menu, self.tela_camera, self.tela_GPS, self.tela_config, self.tela_monitor):
+#_______________________________________________________________________________adicionando as telas na pilha
+        for screen in (self.tela_home, self.tela_menu,   self.tela_camera, 
+                       self.tela_GPS,  self.tela_config, self.tela_monitor): 
             self.stack.addWidget(screen)
 
         # conecta os sinais de navegacao entre as telas
@@ -108,6 +109,9 @@ class KioskWindow(QMainWindow):
             app.setOverrideCursor(Qt.BlankCursor)
 
 
+#===========================================================================================================
+#==========================================  Funções de Inicialização ======================================
+#===========================================================================================================
 def configure_performance(app: QApplication):
     """Ajustes recomendados para rodar com o maximo de desempenho no RPi5."""
     app.setEffectEnabled(Qt.UI_AnimateMenu, False)
@@ -147,12 +151,10 @@ def hide_mouse_cursor(app: QApplication):
 
 
 def main():
-    # Habilita escalonamento correto em telas com DPI diferente
+    # Habilita escalonamento correto em telas com tamanhos diferentes
     os.environ.setdefault("QT_ENABLE_HIGHDPI_SCALING", "1")
 
-    # Precisa ser definido ANTES da QApplication existir. So tem efeito
-    # quando QT_QPA_PLATFORM=eglfs (kiosk sem X11/Wayland no RPi5); em
-    # outras plataformas essa variavel e simplesmente ignorada.
+    # So tem efeito quando QT_QPA_PLATFORM=eglfs (kiosk sem X11/Wayland no RPi5)
     os.environ.setdefault("QT_QPA_EGLFS_HIDECURSOR", "1")
 
     app = QApplication(sys.argv)
@@ -162,12 +164,13 @@ def main():
     load_fonts()
     hide_mouse_cursor(app)
 
+    # Carrega o QSS customizado, se existir. Caso contrario, o app usa o estilo padrao do Fusion + cores definidas em core/config.py
     if os.path.exists(STYLE_PATH):
-        with open(STYLE_PATH, "r", encoding="utf-8") as f:
-            app.setStyleSheet(f.read())
+        with open(STYLE_PATH, "r", encoding="utf-8") as s:
+            app.setStyleSheet(s.read())
 
-    window = KioskWindow()
-    window.showFullScreen()
+    janela = JanelaPrincipal()
+    janela.showFullScreen()
 
     sys.exit(app.exec())
 

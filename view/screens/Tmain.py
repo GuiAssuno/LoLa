@@ -1,21 +1,12 @@
-# -*- coding: utf-8 -*-
-"""
-screens/main_screen.py
 
-TelaPrincipal: tela principal / tela em que o app sempre inicia.
+#   Top →   [  menu |                     conectividade   |  selo CONECTADO ]
+#           [===============================================================]
+#           [  MAPA + bussola  ]  [                   ]  [ CARRO + radares  ]
+#   Mid  →  [                  ]  [  VIDEO DA CAMERA  ]  [  de proximidade  ]
+#           [     Medidores    ]  [                   ]  [      + TPMS      ]
+#           [===============================================================]
+#   Bot  →  [                        MediaPlayerBar                         ]
 
-Layout (inspirado em paineis automotivos modernos):
-
-    [ TopStatusBar: menu | conectividade | selo CONECTADO ]  <- topo, full width
-    -------------------------------------------------------------------
-    [ MAPA + bussola  ]  [                          ]  [ CARRO + radares  ]
-    [ (col. esquerda)  ]  [   VIDEO DA CAMERA        ]  [  de proximidade  ]
-    [ gauges compactos ]  [   (coluna central)       ]  [  + TPMS (col. dir)]
-    -------------------------------------------------------------------
-    [ ---------------- MediaPlayerBar (rodape) ---------------------- ]
-
-Os stretch factors garantem responsividade em qualquer resolucao.
-"""
 
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QGridLayout
